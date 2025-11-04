@@ -23,17 +23,12 @@ jobs:
           cache: 'maven'
 
       - name: Build with Maven
-        run: mvn clean package -DskipTests
-        env:
-          CI: true
-
-      - name: Find JAR file
-        id: jar
         run: |
-          JAR_FILE=$(find . -name "*.jar" -not -name "*original*" | head -n 1)
-          echo "jar_path=$JAR_FILE" >> $GITHUB_OUTPUT
-          echo "Found JAR: $JAR_FILE"
-          ls -lh "$JAR_FILE"
+          cd app
+          mvn clean package -DskipTests
+
+      - name: Verify JAR
+        run: ls -lh app/target/*.jar
 
       - name: Deploy to AWS Lambda
         uses: appleboy/lambda-action@master
@@ -42,4 +37,4 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_ACCOUNT_SECRET_KEY_ID }}
           aws_region: sa-east-1
           function_name: a5dev-outboundSender
-          zip_file: ${{ steps.jar.outputs.jar_path }}
+          zip_file: app/target/aws-lambda-java-starter-example-0.0.1.jar
