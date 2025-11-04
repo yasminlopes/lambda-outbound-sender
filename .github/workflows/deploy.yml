@@ -1,0 +1,45 @@
+name: Deploy to Lambda
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy_source:
+    name: Build and Deploy Lambda
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+        env:
+          CI: true
+
+      - name: Find JAR file
+        id: jar
+        run: |
+          JAR_FILE=$(find . -name "*.jar" -not -name "*original*" | head -n 1)
+          echo "jar_path=$JAR_FILE" >> $GITHUB_OUTPUT
+          echo "Found JAR: $JAR_FILE"
+          ls -lh "$JAR_FILE"
+
+      - name: Deploy to AWS Lambda
+        uses: appleboy/lambda-action@master
+        with:
+          aws_access_key_id: ${{ secrets.AWS_ACCOUNT_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_ACCOUNT_SECRET_KEY_ID }}
+          aws_region: sa-east-1
+          function_name: a5dev-outboundSender
+          zip_file: ${{ steps.jar.outputs.jar_path }}
