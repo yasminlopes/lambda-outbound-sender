@@ -61,7 +61,8 @@ public class Handler implements
         Map<String, String> templates = Map.of(
             "welcome_template", "Olá {{name}}, bem-vindo! Seu horário é {{time}}.",
             "alert_template", "ALERTA: {{level}} - {{detail}}",
-            "simple", "{{greeting}} {{name}}"
+            "simple", "{{greeting}} {{name}}",
+            "reminder", "Caro {{name}}, este é um lembrete para {{event}} em {{date}}."
         );
 
         String templateName = outbound.getTemplate() == null ? "welcome_template" : outbound.getTemplate();
